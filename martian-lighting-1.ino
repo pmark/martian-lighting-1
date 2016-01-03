@@ -1,4 +1,5 @@
 
+#include <inttypes.h>
 #include "application.h"
 #include "neopixel.h"
 
@@ -13,7 +14,8 @@ uint32_t lastBlinkTimestamp = 0;
 
 Adafruit_NeoPixel strip = Adafruit_NeoPixel(PIXEL_COUNT, PIXEL_PIN, PIXEL_TYPE);
 
- 
+void rainbow(uint8_t wait);
+
 void setup() {
 	strip.begin();
 	strip.show();
@@ -48,7 +50,7 @@ float blinkScale() {
 	}
 
 	if (blink) {
-		if (now - lastBlinkTimestamp > 3000) {
+		if (now - lastBlinkTimestamp > 2000) {
 			blinkOff = !blinkOff;
 			lastBlinkTimestamp = now;
 		}		
