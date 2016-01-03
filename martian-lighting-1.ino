@@ -3,7 +3,8 @@
 #include "application.h"
 #include "neopixel.h"
 
-bool blink = true;
+bool lightSwitchOn = false;
+bool blink = false;
 bool blinkOff = false;
 uint32_t lastBlinkTimestamp = 0;
 
@@ -14,17 +15,54 @@ uint32_t lastBlinkTimestamp = 0;
 
 Adafruit_NeoPixel strip = Adafruit_NeoPixel(PIXEL_COUNT, PIXEL_PIN, PIXEL_TYPE);
 
+void setLightOn(const char *event, const char *data) {
+	lightSwitchOn = true;
+}
+
+void setLightOff(const char *event, const char *data) {
+	lightSwitchOn = false;
+}
+
+void setBlinkOn(const char *event, const char *data) {
+	blink = true;
+}
+
+void setBlinkOff(const char *event, const char *data) {
+	blink = false;
+	blinkOff = false;
+}
+
 void rainbow(uint8_t wait);
 
 void setup() {
 	strip.begin();
 	strip.show();
+    Spark.subscribe("light", setLightOn);
+    Spark.subscribe("nolight", setLightOff);
+    Spark.subscribe("blink", setBlinkOn);
+    Spark.subscribe("noblink", setBlinkOff);
+
+    lightSwitchOn = false;
     // Serial.begin(9600);
 }
  
 void loop() {
-	blink = true;
-	rainbow(40);
+
+	if (blink) {
+		rainbow(20);
+		// for(uint16_t i=0; i<strip.numPixels(); i++) {
+		// 	strip.setPixelColor(i, strip.Color(0, 0, 255));
+		// }
+		// strip.show();
+		// delay(100);
+	}
+	else {
+		for(uint16_t i=0; i<strip.numPixels(); i++) {
+			strip.setPixelColor(i, strip.Color(15, 0, 0));
+		}
+		strip.show();
+		delay(100);
+	}
 }
 
 // neopixel
@@ -32,17 +70,20 @@ void rainbow(uint8_t wait) {
 	uint16_t i, j;
 
 	for(j=0; j<256; j++) {
-		float scale = blinkScale();
-		for(i=0; i<strip.numPixels(); i++) {
-			strip.setPixelColor(i, uint32_t(scale * Wheel((i+j) & 255)));
-		}
-		strip.show();
-		delay(wait);
+		// if (lightSwitchOn) {		
+			float scale = blinkScale();
+			for(i=0; i<strip.numPixels(); i++) {
+				strip.setPixelColor(i, uint32_t(scale * Wheel((i+j) & 255)));
+			}
+
+			strip.show();
+			delay(wait);
+		// }
 	}
 }
 
 float blinkScale() {
-	float scale = (blinkOff ? 1.0 : 0.0);
+	float scale = (blinkOff ? 0.0 : 1.0);
 	unsigned long now = millis();
 
 	if (lastBlinkTimestamp == 0) {
